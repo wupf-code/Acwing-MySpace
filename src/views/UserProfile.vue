@@ -2,95 +2,115 @@
   <Content>
     <div class="row">
       <div class="col-3">
-        <userProfileInfo @follow="follow" @unfollow="unfollow" :user="user" />
-        <userProfileWrite @post_a_post="post_a_post" />
+        <UserProfileInfo @follow="follow" @unfollow="unfollow" :user="user" />
+        <UserProfileWrite v-if="is_me" @post_a_post="post_a_post" />
       </div>
       <div class="col-9">
-        <userProfilePosts  :posts="posts" />
+        <UserProfilePosts :user="user" :posts="posts" @delete_a_post="delete_a_post" />
       </div>
     </div>
   </Content>
 </template>
 
-
 <script>
-import Content from "@/components/Content";
-import userProfileInfo from "@/components/userProfileInfo";
-import userProfilePosts from "@/components/userProfilePosts";
-import userProfileWrite from "../components/userProfileWrite";
-import {reactive} from "vue";
+import Content from '../components/Content'
+import UserProfileInfo from '../components/userProfileInfo';
+import UserProfilePosts from '../components/userProfilePosts';
+import UserProfileWrite from '../components/userProfileWrite';
+import { reactive } from 'vue';
+import { useRoute } from 'vue-router';
+import $ from 'jquery';
+import { useStore } from 'vuex';
+import { computed } from 'vue';
+
 export default {
-  name: "UserProfile",
-  components:{
+  name: 'UserList',
+  components: {
     Content,
-    userProfileInfo,
-    userProfilePosts,
-    userProfileWrite,
+    UserProfileInfo,
+    UserProfilePosts,
+    UserProfileWrite
   },
-  setup(){
-    // eslint-disable-next-line no-unused-vars
-    const user=reactive({
-      id:1,
-      username:"wupengfei",
-      lastname:"wu",
-      firstname:"pengfei",
-      followerCount:0,
-      if_followed:false,
+  setup() {
+    const store = useStore();
+    const route = useRoute();
+    const userId = parseInt(route.params.userId);
+    const user = reactive({});
+    const posts = reactive({});
+
+    $.ajax({
+      url: "https://app165.acapp.acwing.com.cn/myspace/getinfo/",
+      type: "GET",
+      data: {
+        user_id: userId,
+      },
+      headers: {
+        'Authorization': "Bearer " + store.state.user.access,
+      },
+      success(resp) {
+        user.id = resp.id;
+        user.username = resp.username;
+        user.photo = resp.photo;
+        user.followerCount = resp.followerCount;
+        user.is_followed = resp.is_followed;
+      }
     });
 
-    const posts=reactive({
-      counts:3,
-      posts:[
-        {
-          id:1,
-          userId:1,
-          content:"今天我是沈敏爸爸"
-        }, {
-          id:2,
-          userId:1,
-          content:"今天我是沈敏父亲"
-        },
-        {
-          id:3,
-          userId:1,
-          content:"今天我是沈敏爹"
-        },
+    $.ajax({
+      url: "https://app165.acapp.acwing.com.cn/myspace/post/",
+      type: "GET",
+      data: {
+        user_id: userId,
+      },
+      headers: {
+        'Authorization': "Bearer " + store.state.user.access,
+      },
+      success(resp) {
+        posts.count = resp.length;
+        posts.posts = resp;
+      }
+    });
 
-      ]
-
-    })
-
-    const follow=()=>{
-        if(user.if_followed)return;
-        user.if_followed=true;
-        user.followerCount++;
-    };
-    const unfollow=()=>{
-      if(!user.if_followed)return;
-      user.if_followed=false;
-      user.followerCount--;
+    const follow = () => {
+      if (user.is_followed) return;
+      user.is_followed = true;
+      user.followerCount ++ ;
     };
 
-    const post_a_post=(content)=>{
-      posts.counts++;
-      posts.posts.unshift( {
-        id:posts.counts,
-        userId:1,
-        content:content,
+    const unfollow = () => {
+      if (!user.is_followed) return;
+      user.is_followed = false;
+      user.followerCount -- ;
+    };
+
+    const post_a_post = content => {
+      posts.count ++ ;
+      posts.posts.unshift({
+        id: posts.count,
+        userId: 1,
+        content: content,
       })
+    };
+
+    const delete_a_post = post_id => {
+      posts.posts = posts.posts.filter(post => post.id !== post_id);
+      posts.count = posts.posts.length;
     }
+
+    const is_me = computed(() => userId === store.state.user.id);
+
     return {
       user,
       follow,
       unfollow,
       posts,
       post_a_post,
+      delete_a_post,
+      is_me,
     }
   }
-
 }
 </script>
 
 <style scoped>
-
 </style>
