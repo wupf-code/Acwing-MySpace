@@ -8,38 +8,38 @@ import UserProfile from "@/views/UserProfile";
 
 const routes = [
   {
-    path: '/',
+    path: '/myspace/',
     name: 'home',
     component: HomeView
   },
   {
-    path: '/userlist/',
+    path: '/myspace/userlist/',
     name: 'userlist',
     component: UserList
   },
   {
-    path: '/userprofile/:userId/',
+    path: '/myspace/userprofile/:userId/',
     name: 'userprofile',
     component: UserProfile
   },
   {
-    path: '/login/',
+    path: '/myspace/login/',
     name: 'login',
     component: LoginView
   },
   {
-    path: '/register/',
+    path: '/myspace/register/',
     name: 'register',
     component: RegisterView
   },
   {
-    path: '/404/',
+    path: '/myspace/404/',
     name: 'notfound',
     component: NotFound
   },
   {
-    path:'/:catchAll(.*)',
-    redirect:'/404/'
+    path:'/myspace/:catchAll(.*)',
+    redirect:'/myspace/404/'
   }
 
 ]
